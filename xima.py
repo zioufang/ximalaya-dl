@@ -18,7 +18,7 @@ class XimaScraper:
 
     def get_filename_and_url(self):
         # filename = padded index - trackName, e.g. 001 - trackName
-        return [(pad_zero(str(t['index'])) + ' - 2677885' + t['trackName'], t['src']) for t in self.full_tracks_info]
+        return [(pad_zero(str(t['index'])) + ' - ' + t['trackName'], t['src']) for t in self.full_tracks_info]
 
 
 # ----------------
