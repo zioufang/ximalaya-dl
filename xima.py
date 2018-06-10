@@ -63,12 +63,12 @@ if __name__ == '__main__':
     except FileNotFoundError:
         to_download = xima.get_filename_and_url()
     if to_download:
-        print('total tracks to download: '+str(len(to_download)))
+        print('total number of episodes to download: '+str(len(to_download)))
         filepaths = [os.path.join(filedir, e[0]+'.mp3') for e in to_download]
         urls = [e[1] for e in to_download]
         with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
             executor.map(download_and_record, filepaths, urls, repeat(recordfile))
-        print('finish all downloading')
+        print('finished all downloading')
     else:
         print('all episodes are already downloaded')
 
