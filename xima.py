@@ -54,10 +54,14 @@ if __name__ == '__main__':
     if not os.path.exists(filedir):
         os.makedirs(filedir)
     recordfile = os.path.join(filedir, 'record')
-    with open(recordfile, "r") as f:
-        downloaded_url_raw = f.read()
-    downloaded_urls = downloaded_url_raw.split('|')
-    to_download = [e for e in xima.get_filename_and_url() if e[1] not in downloaded_urls]
+    # check existing record file
+    try:
+        with open(recordfile, "r") as f:
+            downloaded_url_raw = f.read()
+        downloaded_urls = downloaded_url_raw.split('|')
+        to_download = [e for e in xima.get_filename_and_url() if e[1] not in downloaded_urls]
+    except FileNotFoundError:
+        to_download = xima.get_filename_and_url()
     if to_download:
         print('total tracks to download: '+str(len(to_download)))
         filepaths = [os.path.join(filedir, e[0]+'.mp3') for e in to_download]
