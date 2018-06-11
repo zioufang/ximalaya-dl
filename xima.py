@@ -16,9 +16,9 @@ class XimaScraper:
         self.full_tracks_info = req.json()['data']['tracksAudioPlay']
         self.album_name = self.full_tracks_info[0]['albumName']
 
-    def get_filename_and_url(self):
+    def get_index_trackname_url(self):
         # filename = padded index - trackName, e.g. 001 - trackName
-        return [(pad_zero(str(t['index'])) + ' - ' + t['trackName'], t['src']) for t in self.full_tracks_info]
+        return [(t['index'], t['trackName'], t['src']) for t in self.full_tracks_info]
 
 
 # ----------------
@@ -29,26 +29,27 @@ def pad_zero(n):
     return padded[-3:]
 
 
-def download_from_url(filepath, url):
-    print('requesting ' + filepath)
+def download_from_url(filedir, idx, trackname, url):
+    print('requesting ' + trackname)
+    filename = pad_zero(str(idx)) + ' - ' + trackname + '.mp3'
+    filepath = os.path.join(filedir, filename)
     mp3 = requests.get(url)
     with open(filepath, 'wb') as f:
         f.write(mp3.content)
-    print('finished ' + filepath)
+    print('finished ' + trackname)
 
 
 # download the file then record the downloaded url to a file
-def download_and_record(filepath, url, recordfile):
-    download_from_url(filepath, url)
+def download_and_record(filedir, idx, trackname, url, recordfile):
+    download_from_url(filedir, idx, trackname, url)
     with open(recordfile, "a") as f:
-        f.write(url+'|')
-        print('record '+url)
+        f.write(trackname+'|')
 
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         raise ValueError('Need Album Number')
-    album_no = sys.argv[1]
+    album_no = sys.argv[1].strip()
     xima = XimaScraper(album_no)
     filedir = xima.album_name
     if not os.path.exists(filedir):
@@ -57,17 +58,18 @@ if __name__ == '__main__':
     # check existing record file
     try:
         with open(recordfile, "r") as f:
-            downloaded_url_raw = f.read()
-        downloaded_urls = downloaded_url_raw.split('|')
-        to_download = [e for e in xima.get_filename_and_url() if e[1] not in downloaded_urls]
+            downloaded_tracks_raw = f.read()
+        downloaded_tracks = downloaded_tracks_raw.split('|')
+        to_download = [e for e in xima.get_index_trackname_url() if e[1] not in downloaded_tracks]
     except FileNotFoundError:
-        to_download = xima.get_filename_and_url()
+        to_download = xima.get_index_trackname_url()
     if to_download:
         print('total number of episodes to download: '+str(len(to_download)))
-        filepaths = [os.path.join(filedir, e[0]+'.mp3') for e in to_download]
-        urls = [e[1] for e in to_download]
-        with concurrent.futures.ProcessPoolExecutor(max_workers=5) as executor:
-            executor.map(download_and_record, filepaths, urls, repeat(recordfile))
+        idxs = [e[0] for e in to_download]
+        tracknames = [e[1] for e in to_download]
+        urls = [e[2] for e in to_download]
+        with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
+            executor.map(download_and_record, repeat(filedir), idxs, tracknames, urls, repeat(recordfile))
         print('finished all downloading')
     else:
         print('all episodes are already downloaded')
