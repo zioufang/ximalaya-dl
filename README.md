@@ -3,6 +3,10 @@
 Usage:  
 python xima.py <album_no>
 
+Dependency:
+Only external module used is: requests
+pip install requests
+
 For example:  
 http://www.ximalaya.com/lishi/3703879/  
 3703879 is the <album_no>
