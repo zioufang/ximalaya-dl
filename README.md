@@ -3,8 +3,8 @@
 Usage:  
 python xima.py <album_no>
 
-Dependency:
-Only external module used is: requests
+Dependency:  
+Only external module used is requests, if you don't have one:  
 pip install requests
 
 For example:  
